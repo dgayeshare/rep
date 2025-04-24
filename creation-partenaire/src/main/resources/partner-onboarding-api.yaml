@@ -1,0 +1,161 @@
+swagger: '2.0'
+info:
+  description: >-
+    API pour l'embarquement des partenaires dans le système de transfert international.
+    Cette API permet la création, l'activation et la gestion des partenaires.
+  version: 1.0.0
+  title: API d'Embarquement Partenaires - Transfert International
+host: api.albaridbank.ma
+basePath: /abb-api-partner-onboarding
+schemes:
+  - https
+  - http
+paths:
+  /ABB/CreatePartner:
+    post:
+      tags:
+        - partenaires
+      summary: Créer un nouveau partenaire
+      description: Permet de créer un nouveau partenaire dans le système de transfert international.
+      operationId: createPartner
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Données du partenaire à créer
+          required: true
+          schema:
+            $ref: '#/definitions/CreatePartnerRequest'
+      responses:
+        '200':
+          description: Partenaire créé avec succès
+          schema:
+            $ref: '#/definitions/CreatePartnerResponse'
+        '400':
+          description: Requête invalide
+          schema:
+            $ref: '#/definitions/ApiResponse'
+        '500':
+          description: Erreur interne du serveur
+          schema:
+            $ref: '#/definitions/ApiResponse'
+
+definitions:
+  CreatePartnerRequest:
+    type: object
+    required:
+      - nom_partenaire
+      - date_partenariat
+      - email_responsable
+      - compte_principal
+      - compte_commission
+      - type_commission
+      - type_prelevement
+      - devises
+    properties:
+      nom_partenaire:
+        type: string
+        description: Nom/raison sociale du partenaire
+      date_partenariat:
+        type: string
+        format: date
+        description: Date du partenariat (YYYY-MM-DD)
+      bic:
+        type: string
+        description: Le BIC si le partenaire en dispose
+      email_responsable:
+        type: string
+        description: Email du responsable partenaire qui recevra les identifiants
+      compte_principal:
+        type: integer
+        format: int64
+        description: Identifiant du compte principal du partenaire
+      compte_commission:
+        type: integer
+        format: int64
+        description: Identifiant du compte commission du partenaire
+      type_commission:
+        type: integer
+        enum: [1, 2]
+        description: Type de commission (1=Par Transaction, 2=Par période)
+      periodicite:
+        type: string
+        enum: ['Z', 'M', 'T']
+        description: Périodicité si par période (Z=Quinzaine, M=Mensuelle, T=Trimestrielle)
+      type_prelevement:
+        type: integer
+        enum: [1, 2, 3, 4]
+        description: Type de prélèvement (1=Commission Flat, 2=Pourcentage par Transaction, 3=Par Pallier Nbre Transaction, 4=Par Pallier Montant)
+      commission_abb:
+        type: number
+        format: decimal
+        description: Montant fixe ou pourcentage de commission ABB (si applicable)
+      commission_confrere:
+        type: number
+        format: decimal
+        description: Montant fixe ou pourcentage de commission Confrère (si applicable)
+      palliers:
+        type: array
+        description: Liste des paliers de commission (obligatoire si type_prelevement est 3 ou 4)
+        items:
+          $ref: '#/definitions/PalierDto'
+      devises:
+        type: array
+        description: Liste des devises autorisées pour le partenaire
+        items:
+          type: string
+
+  PalierDto:
+    type: object
+    required:
+      - val_deb
+      - val_fin
+      - commission_abb
+      - commission_conf
+    properties:
+      val_deb:
+        type: number
+        format: decimal
+        description: Valeur de début du palier (montant ou nombre de transactions)
+      val_fin:
+        type: number
+        format: decimal
+        description: Valeur de fin du palier (montant ou nombre de transactions)
+      commission_abb:
+        type: number
+        format: decimal
+        description: Montant de la commission ABB à appliquer pour ce palier
+      commission_conf:
+        type: number
+        format: decimal
+        description: Montant de la commission Confrère à appliquer pour ce palier
+
+  ApiResponse:
+    type: object
+    properties:
+      statut:
+        type: string
+        enum: ['SUCCESS', 'FAILED']
+        description: Statut de l'opération
+      codeRetour:
+        type: string
+        description: Code de retour (000 pour succès)
+      message:
+        type: string
+        description: Message décrivant l'erreur ou le succès
+
+  CreatePartnerResponse:
+    type: object
+    allOf:
+      - $ref: '#/definitions/ApiResponse'
+      - type: object
+        properties:
+          identifiant_Partner:
+            type: string
+            description: Identifiant unique généré pour le partenaire (si succès)
+          password:
+            type: string
+            description: Mot de passe généré pour le partenaire (non haché, si succès)

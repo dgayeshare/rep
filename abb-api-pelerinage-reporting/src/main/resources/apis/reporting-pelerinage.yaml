@@ -1,0 +1,794 @@
+openapi: 3.0.0
+info:
+  title: API Pèlerinage - États et Consultations
+  description: API pour la consultation des états de règlements, remises et encaissements de pèlerinage
+  version: v1.0.0
+
+tags:
+  - name: Etat-reglement
+    description: Opérations relatives aux états des règlements de pèlerinage
+  - name: Remise-cheque
+    description: Opérations relatives aux remises de chèques
+  - name: Encaissements
+    description: Opérations relatives aux encaissements
+  - name: Annulations
+    description: Opérations relatives aux annulations de paiements
+  - name: Versements
+    description: Opérations relatives aux versements par organisation
+
+servers:
+  - url: "http://localhost:8080"
+    description: Environnement de développement
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ===== ÉTAT DES RÈGLEMENTS PÈLERINAGE =====
+  /etats/reglements:
+    post:
+      tags:
+        - Etat-reglement
+      summary: Consultation des règlements pèlerinage effectués
+      description: Permet de consulter les règlements de pèlerinage selon différents critères
+      operationId: consulterReglementsPelerinage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReglementsPelerinageRequest"
+      responses:
+        "200":
+          description: Liste des règlements trouvés
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReglementsPelerinageResponse"
+        "400":
+          description: Paramètres de recherche invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDto"
+        "401":
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDto"
+
+  /etats/reglements/export:
+    post:
+      tags:
+        - Etat-reglement
+      summary: Export Excel des règlements pèlerinage
+      description: Exporte les règlements au format Excel
+      operationId: exporterReglementsPelerinage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReglementsPelerinageRequest"
+      responses:
+        "200":
+          description: Fichier Excel généré
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  # ===== REMISES CHÈQUES CONFRÈRE EN INSTANCE =====
+  /etats/remises-cheques/instance:
+    post:
+      tags:
+        - Remise-cheque
+      summary: État des remises de chèques confrère en instance
+      description: Consultation des chèques remis non numérisés
+      operationId: consulterRemisesChequesInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemisesChequesInstanceRequest"
+      responses:
+        "200":
+          description: Liste des remises en instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemisesChequesInstanceResponse"
+
+  /etats/remises-cheques/instance/export:
+    post:
+      tags:
+        - Remise-cheque
+      summary: Export Excel des remises en instance
+      operationId: exporterRemisesChequesInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemisesChequesInstanceRequest"
+      responses:
+        "200":
+          description: Fichier Excel généré
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  # ===== SITUATION ENCAISSEMENTS CHÈQUES =====
+  /etats/encaissements-cheques:
+    post:
+      tags:
+        - Encaissements
+      summary: Situation des encaissements par chèque
+      description: Consultation des statuts des encaissements par chèque (central uniquement)
+      operationId: consulterEncaissementsCheques
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EncaissementsChequesRequest"
+      responses:
+        "200":
+          description: Situation des encaissements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncaissementsChequesResponse"
+
+  # ===== SITUATION ANNULATIONS =====
+  /etats/annulations:
+    post:
+      tags:
+        - Annulations
+      summary: Situation des annulations de paiements
+      description: Consultation des annulations de paiements selon les critères
+      operationId: consulterAnnulationsPaiements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnulationsPaiementsRequest"
+      responses:
+        "200":
+          description: Liste des annulations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnulationsPaiementsResponse"
+
+  # ===== VERSEMENTS GLOBAUX PAR ORGANISATION =====
+  /etats/versements-organisation:
+    post:
+      tags:
+        - Versements
+      summary: Situation des versements globaux par organisation
+      description: Consultation des versements globaux (masse et unitaires) par organisation
+      operationId: consulterVersementsOrganisation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VersementsOrganisationRequest"
+      responses:
+        "200":
+          description: Versements par organisation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersementsOrganisationResponse"
+
+  # ===== SUIVI REMISES CHÈQUES =====
+  /etats/suivi-remises-cheques:
+    post:
+      tags:
+        - Remise-cheque
+      summary: État de suivi des remises de chèques
+      description: Suivi de tous les chèques remis avec leur statut d'encaissement
+      operationId: consulterSuiviRemisesCheques
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuiviRemisesChequesRequest"
+      responses:
+        "200":
+          description: État de suivi des remises
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuiviRemisesChequesResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ===== REQUEST SCHEMAS =====
+    ReglementsPelerinageRequest:
+      type: object
+      required:
+        - dateDebut
+        - dateFin
+        - statut
+      properties:
+        dateDebut:
+          type: string
+          format: date
+          description: "Date de début de la recherche"
+          example: "2024-01-01"
+        dateFin:
+          type: string
+          format: date
+          description: "Date de fin de la recherche"
+          example: "2024-12-31"
+        statut:
+          type: string
+          enum: [VALIDE, ANNULE]
+          description: "Statut du règlement"
+        page:
+          type: integer
+          minimum: 0
+          default: 0
+          description: "Numéro de page (0-indexed)"
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+          description: "Taille de la page"
+
+    RemisesChequesInstanceRequest:
+      type: object
+      required:
+        - dateRemise
+      properties:
+        dateRemise:
+          type: string
+          format: date
+          description: "Date de remise"
+        ribCompteTire:
+          type: string
+          description: "RIB compte tiré"
+        nomTire:
+          type: string
+          description: "Nom tiré"
+        matriculeAgent:
+          type: string
+          description: "Matricule de l'agent"
+        nombreJoursRetard:
+          type: integer
+          description: "Nombre de jours de retard"
+        agenceNumerisation:
+          type: string
+          description: "Agence de numérisation (visible pour le central)"
+        montant:
+          type: number
+          format: double
+          description: "Montant du chèque"
+
+    EncaissementsChequesResponse:
+      type: object
+      properties:
+        encaissements:
+          type: array
+          items:
+            $ref: "#/components/schemas/EncaissementChequeDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+
+    EncaissementChequeDto:
+      type: object
+      properties:
+        numeroCNIE:
+          type: string
+          description: "Numéro CNIE"
+        nomEmetteur:
+          type: string
+          description: "Nom de l'émetteur"
+        prenomEmetteur:
+          type: string
+          description: "Prénom de l'émetteur"
+        dateDepot:
+          type: string
+          format: date
+          description: "Date de dépôt du chèque"
+        numeroCheque:
+          type: string
+          description: "Numéro du chèque"
+        numeroSerie:
+          type: string
+          description: "Numéro de série du chèque"
+        referenceRemise:
+          type: string
+          description: "Référence de la remise"
+        statut:
+          type: string
+          description: "Statut (saisie, numérisé, etc.)"
+        montantCheque:
+          type: number
+          format: double
+          description: "Montant du chèque"
+        codeAgence:
+          type: string
+          description: "Code de l'agence"
+        nomAgence:
+          type: string
+          description: "Nom de l'agence"
+
+    AnnulationsPaiementsResponse:
+      type: object
+      properties:
+        annulations:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnnulationPaiementDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+
+    AnnulationPaiementDto:
+      type: object
+      properties:
+        dateDemande:
+          type: string
+          format: date
+          description: "Date de la demande d'annulation"
+        nomPelerin:
+          type: string
+          description: "Nom du pèlerin"
+        prenomPelerin:
+          type: string
+          description: "Prénom du pèlerin"
+        cinPelerin:
+          type: string
+          description: "CIN du pèlerin"
+        numeroInscription:
+          type: string
+          description: "Numéro d'inscription"
+        modeReglement:
+          type: string
+          enum: [ESPECES, VIREMENT, CHEQUE]
+          description: "Mode de règlement"
+        montant:
+          type: number
+          format: double
+          description: "Montant"
+        dateOperation:
+          type: string
+          format: date-time
+          description: "Date de l'opération"
+        nomAgence:
+          type: string
+          description: "Nom de l'agence"
+        codeAgence:
+          type: string
+          description: "Code de l'agence"
+        motifAnnulation:
+          type: string
+          description: "Motif d'annulation"
+        numeroOrdre:
+          type: string
+          description: "Numéro d'ordre de l'opération"
+        referenceOperation:
+          type: string
+          description: "Référence de l'opération"
+        statut:
+          type: string
+          enum: [ANNULE, SAISI, REJETE]
+          description: "Statut de l'annulation"
+        dateAnnulation:
+          type: string
+          format: date-time
+          description: "Date d'annulation (si annulée)"
+
+    VersementsOrganisationResponse:
+      type: object
+      properties:
+        versements:
+          type: array
+          items:
+            $ref: "#/components/schemas/VersementOrganisationDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+
+    VersementOrganisationDto:
+      type: object
+      properties:
+        encadrant:
+          type: string
+          description: "Encadrant"
+        organisme:
+          type: string
+          description: "Organisme"
+        typeReglement:
+          type: string
+          enum: [MASSE, UNITAIRE]
+          description: "Type de règlement"
+        nombrePelerin:
+          type: integer
+          description: "Nombre de pèlerins"
+        montantVersement:
+          type: number
+          format: double
+          description: "Montant de versement"
+
+    SuiviRemisesChequesResponse:
+      type: object
+      properties:
+        remises:
+          type: array
+          items:
+            $ref: "#/components/schemas/SuiviRemiseChequeDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+
+    SuiviRemiseChequeDto:
+      type: object
+      properties:
+        numeroCompteBeneficiaire:
+          type: string
+          description: "Numéro de compte bénéficiaire"
+        intituleCompteBeneficiaire:
+          type: string
+          description: "Intitulé compte bénéficiaire"
+        banque:
+          type: string
+          description: "Banque"
+        numeroCheque:
+          type: string
+          description: "Numéro de chèque"
+        numeroRemise:
+          type: string
+          description: "Numéro de remise"
+        dateRemise:
+          type: string
+          format: date
+          description: "Date de remise"
+        ribCompteTire:
+          type: string
+          description: "RIB compte tiré"
+        nomTire:
+          type: string
+          description: "Nom tiré"
+        matriculeAgent:
+          type: string
+          description: "Matricule de l'agent (visible pour l'agence seulement)"
+        agenceNumerisation:
+          type: string
+          description: "Agence de numérisation (visible pour le central)"
+        statut:
+          type: string
+          description: "Statut de la remise"
+        montant:
+          type: number
+          format: double
+          description: "Montant"
+
+    # ===== COMMON SCHEMAS =====
+    PaginationDto:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          description: "Page courante (0-indexed)"
+        totalPages:
+          type: integer
+          description: "Nombre total de pages"
+        totalElements:
+          type: integer
+          format: int64
+          description: "Nombre total d'éléments"
+        size:
+          type: integer
+          description: "Taille de la page"
+        first:
+          type: boolean
+          description: "Est-ce la première page"
+        last:
+          type: boolean
+          description: "Est-ce la dernière page"
+
+    ErrorDto:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: "Code d'erreur"
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: "Message d'erreur"
+          example: "Les paramètres de recherche sont invalides"
+        details:
+          type: array
+          items:
+            type: string
+          description: "Détails supplémentaires sur l'erreur"
+        timestamp:
+          type: string
+          format: date-time
+          description: "Horodatage de l'erreur"
+        path:
+          type: string
+          description: "Chemin de l'API où l'erreur s'est produite"
+
+    EncaissementsChequesRequest:
+      type: object
+      properties:
+        dateDebut:
+          type: string
+          format: date
+          description: "Date de début"
+        dateFin:
+          type: string
+          format: date
+          description: "Date de fin"
+        numeroPI:
+          type: string
+          description: "Numéro PI du payeur"
+        numeroValeur:
+          type: string
+          description: "Numéro de valeur du chèque"
+        numeroSerie:
+          type: string
+          description: "Numéro de série du chèque"
+        referenceRemise:
+          type: string
+          description: "Référence de la remise"
+        page:
+          type: integer
+          minimum: 0
+          default: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+
+    AnnulationsPaiementsRequest:
+      type: object
+      required:
+        - dateDebut
+        - dateFin
+        - modeReglement
+      properties:
+        dateDebut:
+          type: string
+          format: date
+          description: "Date de début"
+        dateFin:
+          type: string
+          format: date
+          description: "Date de fin"
+        modeReglement:
+          type: string
+          enum: [VERSEMENT, VIREMENT, CHEQUE]
+          description: "Mode de règlement"
+        page:
+          type: integer
+          minimum: 0
+          default: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+
+    VersementsOrganisationRequest:
+      type: object
+      required:
+        - dateDebut
+        - dateFin
+        - typeReglement
+      properties:
+        dateDebut:
+          type: string
+          format: date
+          description: "Date de début"
+        dateFin:
+          type: string
+          format: date
+          description: "Date de fin"
+        typeReglement:
+          type: string
+          enum: [MASSE, UNITAIRE]
+          description: "Type de règlement"
+        page:
+          type: integer
+          minimum: 0
+          default: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+
+    SuiviRemisesChequesRequest:
+      type: object
+      required:
+        - dateRemise
+      properties:
+        dateRemise:
+          type: string
+          format: date
+          description: "Date de remise (<=)"
+        page:
+          type: integer
+          minimum: 0
+          default: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+
+    # ===== RESPONSE SCHEMAS =====
+    ReglementsPelerinageResponse:
+      type: object
+      properties:
+        reglements:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReglementPelerinageDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+
+    ReglementPelerinageDto:
+      type: object
+      properties:
+        province:
+          type: string
+          description: "Province - Préfecture"
+        numeroCinPelerin:
+          type: string
+          description: "Numéro CIN du pèlerin"
+        numeroInscriptionPelerin:
+          type: string
+          description: "Numéro d'inscription du pèlerin"
+        nomPelerin:
+          type: string
+          description: "Nom du pèlerin"
+        prenomPelerin:
+          type: string
+          description: "Prénom du pèlerin"
+        numeroTelPelerin:
+          type: string
+          description: "Numéro de téléphone du pèlerin"
+        typePaiement:
+          type: string
+          enum: [UNITAIRE, MULTIPLE]
+          description: "Type de paiement"
+        numeroPiPayeur:
+          type: string
+          description: "Numéro PI du payeur"
+        nomPayeur:
+          type: string
+          description: "Nom du payeur"
+        prenomPayeur:
+          type: string
+          description: "Prénom du payeur"
+        datePaiement:
+          type: string
+          format: date-time
+          description: "Date de paiement"
+        montantPaye:
+          type: number
+          format: double
+          description: "Montant payé"
+        montantSubvention:
+          type: number
+          format: double
+          description: "Montant de la subvention"
+        montantGlobal:
+          type: number
+          format: double
+          description: "Montant global (payé + subvention)"
+        codeAgence:
+          type: string
+          description: "Code de l'agence"
+        nomAgence:
+          type: string
+          description: "Nom de l'agence"
+        region:
+          type: string
+          description: "Région"
+        numeroOrdre:
+          type: string
+          description: "Numéro d'ordre (versement/virement/chèque)"
+        encadrant:
+          type: string
+          description: "Encadrant (Ministère Habous / Agence de voyage)"
+        codeOrganisateur:
+          type: string
+          description: "Code organisateur"
+        organisme:
+          type: string
+          description: "Organisme"
+        produit:
+          type: string
+          description: "Produit"
+        offre:
+          type: string
+          description: "Offre"
+        modePaiement:
+          type: string
+          description: "Mode de paiement"
+        numeroRemise:
+          type: string
+          description: "Numéro de remise"
+        statutRemise:
+          type: string
+          description: "Statut de la remise"
+        numeroValeur:
+          type: string
+          description: "Numéro de valeur"
+        statutEnvoiSIMT:
+          type: string
+          enum: [VALIDE, REJETE]
+          description: "Statut envoi SIMT (pour les chèques)"
+
+    RemisesChequesInstanceResponse:
+      type: object
+      properties:
+        remises:
+          type: array
+          items:
+            $ref: "#/components/schemas/RemiseChequeInstanceDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+
+    RemiseChequeInstanceDto:
+      type: object
+      properties:
+        numeroCompteBeneficiaire:
+          type: string
+          description: "Numéro de compte bénéficiaire"
+        intituleCompteBeneficiaire:
+          type: string
+          description: "Intitulé compte bénéficiaire"
+        banque:
+          type: string
+          description: "Banque"
+        numeroCheque:
+          type: string
+          description: "Numéro de chèque"
+        idRemise:
+          type: string
+          description: "ID de la remise"
+        dateRemise:
+          type: string
+          format: date
+        ribCompteTire:
+          type: string
+          description: "RIB compte tiré"
+        nomTire:
+          type: string
+          description: "Nom tiré"
+        matriculeAgent:
+          type: string
+          description: "Matricule de l'agent"
+        agenceNumerisation:
+          type: string
+          description: "Agence de numérisation (visible pour le central)"
+        statut:
+          type: string
+          description: "Statut du règlement"
